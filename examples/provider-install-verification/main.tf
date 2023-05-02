@@ -6,6 +6,8 @@ terraform {
   }
 }
 
-provider "typesense" {}
+provider "typesense" {
+  key = "foobar"
+}
 
 data "typesense_cluster" "example" {}
