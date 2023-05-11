@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const (
@@ -48,6 +49,7 @@ func (p *typesenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, 
 
 // Configure prepares a typesense client for data sources and resources.
 func (p *typesenseProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	tflog.Info(ctx, "Configuring Typesense client")
 	// Retrieve provider data from configuration
 	var config typesenseProviderModel
 	diags := req.Config.Get(ctx, &config)
@@ -92,6 +94,9 @@ func (p *typesenseProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
+	ctx = tflog.SetField(ctx, "foo", "bar")
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "foo")
+
 	// Create a new Typesense client using the configuration values
 	client, err := NewClient(key)
 	if err != nil {
@@ -108,6 +113,7 @@ func (p *typesenseProvider) Configure(ctx context.Context, req provider.Configur
 	// type Configure methods.
 	resp.DataSourceData = client
 	resp.ResourceData = client
+	tflog.Info(ctx, "Configured Typesense client", map[string]any{"success": true})
 }
 
 // DataSources defines the data sources implemented in the provider.
