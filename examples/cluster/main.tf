@@ -7,11 +7,8 @@ terraform {
 }
 
 provider "typesense" {
-  key = "foobar"
 }
 
-data "typesense_cluster" "example" {}
-
-output "example_cluster_id" {
-  value = data.typesense_cluster.example
+resource "typesense_cluster" "example" {
+  name = "example"
 }

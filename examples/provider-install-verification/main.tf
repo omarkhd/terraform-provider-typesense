@@ -7,7 +7,12 @@ terraform {
 }
 
 provider "typesense" {
-  key = "foobar"
 }
 
-data "typesense_cluster" "example" {}
+data "typesense_cluster" "example" {
+  id = "05umtgeli2v8b19np"
+}
+
+output "example_cluster" {
+  value = data.typesense_cluster.example
+}

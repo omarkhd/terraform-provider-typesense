@@ -2,6 +2,7 @@ package typesense
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -15,9 +16,36 @@ var (
 	clusterDataSourceSchema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Required: true,
 			},
 			"name": schema.StringAttribute{
+				Computed: true,
+			},
+			"memory": schema.StringAttribute{
+				Computed: true,
+			},
+			"vcpu": schema.StringAttribute{
+				Computed: true,
+			},
+			"high_performance_disk": schema.StringAttribute{
+				Computed: true,
+			},
+			"typesense_server_version": schema.StringAttribute{
+				Computed: true,
+			},
+			"high_availability": schema.StringAttribute{
+				Computed: true,
+			},
+			"search_delivery_network": schema.StringAttribute{
+				Computed: true,
+			},
+			"load_balancing": schema.StringAttribute{
+				Computed: true,
+			},
+			"region": schema.StringAttribute{
+				Computed: true,
+			},
+			"auto_upgrade_capacity": schema.StringAttribute{
 				Computed: true,
 			},
 			"status": schema.StringAttribute{
@@ -44,7 +72,14 @@ func (cds *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 }
 
 func (cds *clusterDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	cluster, err := cds.client.GetCluster("huh?")
+	// Get current state
+	var config typesenseClusterModel
+	diags := req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	cluster, err := cds.client.GetCluster(config.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to read Typesense cluster",
@@ -52,9 +87,22 @@ func (cds *clusterDataSource) Read(ctx context.Context, req datasource.ReadReque
 		)
 		return
 	}
-
+	tcm := &typesenseClusterModel{
+		ID:                     types.StringValue(cluster.ID),
+		Name:                   types.StringValue(cluster.Name),
+		Memory:                 types.StringValue(cluster.Memory),
+		VCPU:                   types.StringValue(cluster.VCPU),
+		HighPerformanceDisk:    types.StringValue(cluster.HighPerformanceDisk),
+		TypesenseServerVersion: types.StringValue(cluster.TypesenseServerVersion),
+		HighAvailability:       types.StringValue(cluster.HighAvailability),
+		SearchDeliveryNetwork:  types.StringValue(cluster.SearchDeliveryNetwork),
+		LoadBalancing:          types.StringValue(cluster.LoadBalancing),
+		Region:                 types.StringValue(cluster.Regions[0]),
+		AutoUpgradeCapacity:    types.StringValue(cluster.AutoUpgradeCapacity),
+		Status:                 types.StringValue(cluster.Status),
+	}
 	// Set state
-	diags := resp.State.Set(ctx, cluster)
+	diags = resp.State.Set(ctx, tcm)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

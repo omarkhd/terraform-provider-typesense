@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -17,6 +18,33 @@ var (
 				Computed: true,
 			},
 			"name": schema.StringAttribute{
+				Computed: true,
+			},
+			"memory": schema.StringAttribute{
+				Computed: true,
+			},
+			"vcpu": schema.StringAttribute{
+				Computed: true,
+			},
+			"high_performance_disk": schema.StringAttribute{
+				Computed: true,
+			},
+			"typesense_server_version": schema.StringAttribute{
+				Computed: true,
+			},
+			"high_availability": schema.StringAttribute{
+				Computed: true,
+			},
+			"search_delivery_network": schema.StringAttribute{
+				Computed: true,
+			},
+			"load_balancing": schema.StringAttribute{
+				Computed: true,
+			},
+			"region": schema.StringAttribute{
+				Computed: true,
+			},
+			"auto_upgrade_capacity": schema.StringAttribute{
 				Computed: true,
 			},
 			"status": schema.StringAttribute{
@@ -57,7 +85,7 @@ func (cr *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 // Create creates the resource and sets the initial Terraform state.
 func (cr *clusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan clusterModel
+	var plan typesenseClusterModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -65,7 +93,7 @@ func (cr *clusterResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// Create new cluster
-	cluster, err := cr.client.CreateCluster(plan)
+	cluster, err := cr.client.CreateCluster(typesenseCluster{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating cluster",
@@ -73,9 +101,18 @@ func (cr *clusterResource) Create(ctx context.Context, req resource.CreateReques
 		)
 		return
 	}
-	plan.ID = cluster.ID
-	plan.Name = cluster.Name
-	plan.Status = cluster.Status
+	plan.ID = types.StringValue(cluster.ID)
+	plan.Name = types.StringValue(cluster.Name)
+	plan.Memory = types.StringValue(cluster.Memory)
+	plan.VCPU = types.StringValue(cluster.VCPU)
+	plan.HighPerformanceDisk = types.StringValue(cluster.HighPerformanceDisk)
+	plan.TypesenseServerVersion = types.StringValue(cluster.TypesenseServerVersion)
+	plan.HighAvailability = types.StringValue(cluster.HighAvailability)
+	plan.SearchDeliveryNetwork = types.StringValue(cluster.SearchDeliveryNetwork)
+	plan.LoadBalancing = types.StringValue(cluster.LoadBalancing)
+	plan.Region = types.StringValue(cluster.Regions[0])
+	plan.AutoUpgradeCapacity = types.StringValue(cluster.AutoUpgradeCapacity)
+	plan.Status = types.StringValue(cluster.Status)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -88,7 +125,7 @@ func (cr *clusterResource) Create(ctx context.Context, req resource.CreateReques
 // Read refreshes the Terraform state with the latest data.
 func (cr *clusterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state clusterModel
+	var state typesenseClusterModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -104,9 +141,9 @@ func (cr *clusterResource) Read(ctx context.Context, req resource.ReadRequest, r
 		)
 		return
 	}
-	state.ID = cluster.ID
-	state.Name = cluster.Name
-	state.Status = cluster.Status
+	state.ID = types.StringValue(cluster.ID)
+	//state.Name = cluster.Name
+	//state.Status = cluster.Status
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

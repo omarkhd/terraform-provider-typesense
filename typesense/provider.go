@@ -134,3 +134,19 @@ func (p *typesenseProvider) Resources(_ context.Context) []func() resource.Resou
 type typesenseProviderModel struct {
 	Key types.String `tfsdk:"key"`
 }
+
+// typesenseClusterModel maps Typesense cluster schema data.
+type typesenseClusterModel struct {
+	ID                     types.String `tfsdk:"id"`
+	Name                   types.String `tfsdk:"name"`
+	Memory                 types.String `tfsdk:"memory"`
+	VCPU                   types.String `tfsdk:"vcpu"`
+	HighPerformanceDisk    types.String `tfsdk:"high_performance_disk"`
+	TypesenseServerVersion types.String `tfsdk:"typesense_server_version"`
+	HighAvailability       types.String `tfsdk:"high_availability"`
+	SearchDeliveryNetwork  types.String `tfsdk:"search_delivery_network"`
+	LoadBalancing          types.String `tfsdk:"load_balancing"`
+	Region                 types.String `tfsdk:"region"`
+	AutoUpgradeCapacity    types.String `tfsdk:"auto_upgrade_capacity"`
+	Status                 types.String `tfsdk:"status"`
+}
