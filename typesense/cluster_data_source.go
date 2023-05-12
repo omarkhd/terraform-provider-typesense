@@ -52,7 +52,7 @@ func (cds *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 }
 
 func (cds *clusterDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	cluster, err := cds.client.GetCluster()
+	cluster, err := cds.client.GetCluster("huh?")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to read Typesense cluster",

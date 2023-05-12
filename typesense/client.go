@@ -8,9 +8,9 @@ func NewClient(key string) (*typesenseClient, error) {
 
 type typesenseClient struct{}
 
-func (c *typesenseClient) GetCluster() (*clusterDataSourceModel, error) {
+func (c *typesenseClient) GetCluster(id string) (*clusterDataSourceModel, error) {
 	return &clusterDataSourceModel{
-		ID:     types.StringValue("fb"),
+		ID:     types.StringValue(id),
 		Name:   types.StringValue("foobar"),
 		Status: types.StringValue("unknown"),
 	}, nil

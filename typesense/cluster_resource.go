@@ -87,6 +87,33 @@ func (cr *clusterResource) Create(ctx context.Context, req resource.CreateReques
 
 // Read refreshes the Terraform state with the latest data.
 func (cr *clusterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	// Get current state
+	var state clusterDataSourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Get refreshed cluster value from Typesense
+	cluster, err := cr.client.GetCluster(state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Typesense Cluster",
+			"Could not read Typesense Cluster ID "+state.ID.ValueString()+": "+err.Error(),
+		)
+		return
+	}
+	state.ID = cluster.ID
+	state.Name = cluster.Name
+	state.Status = cluster.Status
+
+	// Set refreshed state
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
