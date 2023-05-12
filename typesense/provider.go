@@ -125,7 +125,9 @@ func (p *typesenseProvider) DataSources(_ context.Context) []func() datasource.D
 
 // Resources defines the resources implemented in the provider.
 func (p *typesenseProvider) Resources(_ context.Context) []func() resource.Resource {
-	return nil
+	return []func() resource.Resource{
+		NewClusterResource,
+	}
 }
 
 // typesenseProviderModel maps provider schema data to a Go type.
