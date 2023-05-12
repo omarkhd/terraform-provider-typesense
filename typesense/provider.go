@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	keyAttributeName = "key"
+	keyEnvName = "TYPESENSE_MANAGEMENT_KEY"
 )
 
 // Ensure the implementation satisfies the expected interfaces
@@ -39,7 +39,7 @@ func (p *typesenseProvider) Metadata(_ context.Context, _ provider.MetadataReque
 func (p *typesenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			keyAttributeName: schema.StringAttribute{
+			"key": schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
 			},
@@ -62,10 +62,10 @@ func (p *typesenseProvider) Configure(ctx context.Context, req provider.Configur
 	// attributes, it must be a known value.
 	if config.Key.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
-			path.Root(keyAttributeName),
+			path.Root("key"),
 			"Unknown Typesense API Key",
 			"The provider cannot create the Typesense API client as there is an unknown configuration value for the Typesense API key. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the TYPESENSE_KEY environment variable.",
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the "+keyEnvName+" environment variable.",
 		)
 	}
 	if resp.Diagnostics.HasError() {
@@ -74,7 +74,7 @@ func (p *typesenseProvider) Configure(ctx context.Context, req provider.Configur
 
 	// Default values to environment variables, but override
 	// with Terraform configuration value if set.
-	key := os.Getenv("TYPESENSE_KEY")
+	key := os.Getenv(keyEnvName)
 	if !config.Key.IsNull() {
 		key = config.Key.ValueString()
 	}
@@ -83,10 +83,10 @@ func (p *typesenseProvider) Configure(ctx context.Context, req provider.Configur
 	// errors with provider-specific guidance.
 	if key == "" {
 		resp.Diagnostics.AddAttributeError(
-			path.Root(keyAttributeName),
+			path.Root("key"),
 			"Missing Typesense API Key",
 			"The provider cannot create the Typesense API client as there is a missing or empty value for the Typesense API key. "+
-				"Set the key value in the configuration or use the TYPESENSE_KEY environment variable. "+
+				"Set the key value in the configuration or use the "+keyEnvName+" environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
