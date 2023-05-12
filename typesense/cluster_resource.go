@@ -266,4 +266,21 @@ func (cr *clusterResource) Update(ctx context.Context, req resource.UpdateReques
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (cr *clusterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	// Retrieve values from state
+	var state typesenseClusterModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Terminate cluster
+	err := cr.client.TerminateCluster(state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Deleting Typesense Cluster",
+			"Could not delete cluster, unexpected error: "+err.Error(),
+		)
+		return
+	}
 }

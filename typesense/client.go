@@ -121,6 +121,33 @@ func (c *typesenseClient) UpdateCluster(model typesenseCluster) error {
 	return nil
 }
 
+func (c *typesenseClient) TerminateCluster(id string) error {
+	params := map[string]interface{}{
+		"lifecycle_action": "terminate",
+	}
+	payload, _ := json.Marshal(params)
+	req, err := http.NewRequest("POST", clusterEndpoint+"/"+id+"/lifecycle", bytes.NewBuffer(payload))
+	if err != nil {
+		return err
+	}
+	c.setHeaders(req)
+	hc := http.Client{}
+	resp, err := hc.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		return err
+	}
+	body, err := io.ReadAll(resp.Body)
+	var response typesenseClusterCreateResponse
+	if err = json.Unmarshal(body, &response); err != nil {
+		return err
+	}
+	if !response.Success {
+		return errors.New(string(body))
+	}
+	return nil
+}
+
 func (c *typesenseClient) setHeaders(req *http.Request) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
