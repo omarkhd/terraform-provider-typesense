@@ -45,7 +45,7 @@ var (
 			"region": schema.StringAttribute{
 				Computed: true,
 			},
-			"auto_upgrade_capacity": schema.StringAttribute{
+			"auto_upgrade_capacity": schema.BoolAttribute{
 				Computed: true,
 			},
 			"status": schema.StringAttribute{
@@ -98,7 +98,7 @@ func (cds *clusterDataSource) Read(ctx context.Context, req datasource.ReadReque
 		SearchDeliveryNetwork:  types.StringValue(cluster.SearchDeliveryNetwork),
 		LoadBalancing:          types.StringValue(cluster.LoadBalancing),
 		Region:                 types.StringValue(cluster.Regions[0]),
-		AutoUpgradeCapacity:    types.StringValue(cluster.AutoUpgradeCapacity),
+		AutoUpgradeCapacity:    types.BoolValue(cluster.AutoUpgradeCapacity),
 		Status:                 types.StringValue(cluster.Status),
 	}
 	// Set state

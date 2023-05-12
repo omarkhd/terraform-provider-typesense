@@ -147,6 +147,6 @@ type typesenseClusterModel struct {
 	SearchDeliveryNetwork  types.String `tfsdk:"search_delivery_network"`
 	LoadBalancing          types.String `tfsdk:"load_balancing"`
 	Region                 types.String `tfsdk:"region"`
-	AutoUpgradeCapacity    types.String `tfsdk:"auto_upgrade_capacity"`
+	AutoUpgradeCapacity    types.Bool   `tfsdk:"auto_upgrade_capacity"`
 	Status                 types.String `tfsdk:"status"`
 }

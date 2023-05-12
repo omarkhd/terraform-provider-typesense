@@ -21,7 +21,7 @@ type typesenseCluster struct {
 	SearchDeliveryNetwork  string   `json:"search_delivery_network"`
 	LoadBalancing          string   `json:"load_balancing"`
 	Regions                []string `json:"regions"`
-	AutoUpgradeCapacity    string   `json:"auto_upgrade_capacity"`
+	AutoUpgradeCapacity    bool     `json:"auto_upgrade_capacity"`
 	Status                 string   `json:"status"`
 }
 
@@ -60,11 +60,17 @@ func (c *typesenseClient) GetCluster(id string) (*typesenseCluster, error) {
 }
 
 func (c *typesenseClient) CreateCluster(model typesenseCluster) (*typesenseCluster, error) {
-	payload, _ := json.Marshal(map[string]interface{}{
-		"memory":  "0.5_gb",
-		"vcpu":    "2_vcpus_1_hr_burst_per_day",
-		"regions": []string{"oregon"},
-	})
+	params := map[string]interface{}{
+		"memory":                  model.Memory,
+		"vcpu":                    model.VCPU,
+		"regions":                 model.Regions,
+		"high_availability":       model.HighAvailability,
+		"search_delivery_network": "off",
+		"high_performance_disk":   model.HighPerformanceDisk,
+		"name":                    model.Name,
+		"auto_upgrade_capacity":   model.AutoUpgradeCapacity,
+	}
+	payload, _ := json.Marshal(params)
 	req, err := http.NewRequest("POST", clusterEndpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err

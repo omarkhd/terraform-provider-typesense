@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -19,21 +21,26 @@ var (
 			},
 			"name": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
 			},
 			"memory": schema.StringAttribute{
-				Computed: true,
+				Required: true,
 			},
 			"vcpu": schema.StringAttribute{
-				Computed: true,
+				Required: true,
 			},
 			"high_performance_disk": schema.StringAttribute{
 				Computed: true,
+				Default:  stringdefault.StaticString("no"),
+				Optional: true,
 			},
 			"typesense_server_version": schema.StringAttribute{
 				Computed: true,
 			},
 			"high_availability": schema.StringAttribute{
 				Computed: true,
+				Default:  stringdefault.StaticString("no"),
+				Optional: true,
 			},
 			"search_delivery_network": schema.StringAttribute{
 				Computed: true,
@@ -42,10 +49,12 @@ var (
 				Computed: true,
 			},
 			"region": schema.StringAttribute{
-				Computed: true,
+				Required: true,
 			},
-			"auto_upgrade_capacity": schema.StringAttribute{
+			"auto_upgrade_capacity": schema.BoolAttribute{
 				Computed: true,
+				Default:  booldefault.StaticBool(false),
+				Optional: true,
 			},
 			"status": schema.StringAttribute{
 				Computed: true,
@@ -93,7 +102,16 @@ func (cr *clusterResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// Create new cluster
-	cluster, err := cr.client.CreateCluster(typesenseCluster{})
+	cluster, err := cr.client.CreateCluster(typesenseCluster{
+		Memory:                plan.Memory.ValueString(),
+		VCPU:                  plan.VCPU.ValueString(),
+		Regions:               []string{plan.Region.ValueString()},
+		HighAvailability:      plan.HighAvailability.ValueString(),
+		SearchDeliveryNetwork: plan.SearchDeliveryNetwork.ValueString(),
+		HighPerformanceDisk:   plan.HighPerformanceDisk.ValueString(),
+		Name:                  plan.Name.ValueString(),
+		AutoUpgradeCapacity:   plan.AutoUpgradeCapacity.ValueBool(),
+	})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating cluster",
@@ -111,7 +129,7 @@ func (cr *clusterResource) Create(ctx context.Context, req resource.CreateReques
 	plan.SearchDeliveryNetwork = types.StringValue(cluster.SearchDeliveryNetwork)
 	plan.LoadBalancing = types.StringValue(cluster.LoadBalancing)
 	plan.Region = types.StringValue(cluster.Regions[0])
-	plan.AutoUpgradeCapacity = types.StringValue(cluster.AutoUpgradeCapacity)
+	plan.AutoUpgradeCapacity = types.BoolValue(cluster.AutoUpgradeCapacity)
 	plan.Status = types.StringValue(cluster.Status)
 
 	// Set state to fully populated data
@@ -142,8 +160,17 @@ func (cr *clusterResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 	state.ID = types.StringValue(cluster.ID)
-	//state.Name = cluster.Name
-	//state.Status = cluster.Status
+	state.Name = types.StringValue(cluster.Name)
+	state.Memory = types.StringValue(cluster.Memory)
+	state.VCPU = types.StringValue(cluster.VCPU)
+	state.HighPerformanceDisk = types.StringValue(cluster.HighPerformanceDisk)
+	state.TypesenseServerVersion = types.StringValue(cluster.TypesenseServerVersion)
+	state.HighAvailability = types.StringValue(cluster.HighAvailability)
+	state.SearchDeliveryNetwork = types.StringValue(cluster.SearchDeliveryNetwork)
+	state.LoadBalancing = types.StringValue(cluster.LoadBalancing)
+	state.Region = types.StringValue(cluster.Regions[0])
+	state.AutoUpgradeCapacity = types.BoolValue(cluster.AutoUpgradeCapacity)
+	state.Status = types.StringValue(cluster.Status)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
