@@ -5,15 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
-
-// clusterModel maps Typesense cluster schema data.
-type clusterDataSourceModel struct {
-	ID     types.String `tfsdk:"id"`
-	Name   types.String `tfsdk:"name"`
-	Status types.String `tfsdk:"status"`
-}
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
