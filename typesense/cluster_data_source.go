@@ -19,6 +19,20 @@ type clusterDataSourceModel struct {
 var (
 	_ datasource.DataSource              = &clusterDataSource{}
 	_ datasource.DataSourceWithConfigure = &clusterDataSource{}
+
+	clusterDataSourceSchema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+			"name": schema.StringAttribute{
+				Computed: true,
+			},
+			"status": schema.StringAttribute{
+				Computed: true,
+			},
+		},
+	}
 )
 
 func NewClusterDataSource() datasource.DataSource {
@@ -34,19 +48,7 @@ func (cds *clusterDataSource) Metadata(_ context.Context, req datasource.Metadat
 }
 
 func (cds *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"name": schema.StringAttribute{
-				Computed: true,
-			},
-			"status": schema.StringAttribute{
-				Computed: true,
-			},
-		},
-	}
+	resp.Schema = clusterDataSourceSchema
 }
 
 func (cds *clusterDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

@@ -11,6 +11,20 @@ import (
 var (
 	_ resource.Resource              = &clusterResource{}
 	_ resource.ResourceWithConfigure = &clusterResource{}
+
+	clusterResourceSchema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+			"name": schema.StringAttribute{
+				Computed: true,
+			},
+			"status": schema.StringAttribute{
+				Computed: true,
+			},
+		},
+	}
 )
 
 // NewClusterResource is a helper function to simplify the provider implementation.
@@ -38,7 +52,7 @@ func (cr *clusterResource) Metadata(_ context.Context, req resource.MetadataRequ
 
 // Schema defines the schema for the resource.
 func (cr *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{}
+	resp.Schema = clusterResourceSchema
 }
 
 // Create creates the resource and sets the initial Terraform state.
