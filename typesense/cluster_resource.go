@@ -5,7 +5,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -18,6 +20,9 @@ var (
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Computed: true,
@@ -25,31 +30,55 @@ var (
 			},
 			"memory": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"vcpu": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"high_performance_disk": schema.StringAttribute{
 				Computed: true,
 				Default:  stringdefault.StaticString("no"),
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"typesense_server_version": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"high_availability": schema.StringAttribute{
 				Computed: true,
 				Default:  stringdefault.StaticString("no"),
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"search_delivery_network": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"load_balancing": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"region": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"auto_upgrade_capacity": schema.BoolAttribute{
 				Computed: true,
@@ -58,6 +87,9 @@ var (
 			},
 			"status": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -182,6 +214,54 @@ func (cr *clusterResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (cr *clusterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	// Retrieve values from plan
+	var plan typesenseClusterModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Update existing cluster
+	err := cr.client.UpdateCluster(typesenseCluster{
+		ID:                  plan.ID.ValueString(),
+		Name:                plan.Name.ValueString(),
+		AutoUpgradeCapacity: plan.AutoUpgradeCapacity.ValueBool(),
+	})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Typesense Cluster",
+			"Could not update cluster, unexpected error: "+err.Error(),
+		)
+		return
+	}
+	// Get refreshed cluster value from Typesense
+	cluster, err := cr.client.GetCluster(plan.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Typesense Cluster",
+			"Could not read Typesense Cluster ID "+plan.ID.ValueString()+": "+err.Error(),
+		)
+		return
+	}
+	plan.ID = types.StringValue(cluster.ID)
+	plan.Name = types.StringValue(cluster.Name)
+	plan.Memory = types.StringValue(cluster.Memory)
+	plan.VCPU = types.StringValue(cluster.VCPU)
+	plan.HighPerformanceDisk = types.StringValue(cluster.HighPerformanceDisk)
+	plan.TypesenseServerVersion = types.StringValue(cluster.TypesenseServerVersion)
+	plan.HighAvailability = types.StringValue(cluster.HighAvailability)
+	plan.SearchDeliveryNetwork = types.StringValue(cluster.SearchDeliveryNetwork)
+	plan.LoadBalancing = types.StringValue(cluster.LoadBalancing)
+	plan.Region = types.StringValue(cluster.Regions[0])
+	plan.AutoUpgradeCapacity = types.BoolValue(cluster.AutoUpgradeCapacity)
+	plan.Status = types.StringValue(cluster.Status)
+
+	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.

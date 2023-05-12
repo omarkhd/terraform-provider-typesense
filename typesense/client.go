@@ -93,6 +93,34 @@ func (c *typesenseClient) CreateCluster(model typesenseCluster) (*typesenseClust
 	return &response.Cluster, nil
 }
 
+func (c *typesenseClient) UpdateCluster(model typesenseCluster) error {
+	params := map[string]interface{}{
+		"auto_upgrade_capacity": model.AutoUpgradeCapacity,
+		"name":                  model.Name,
+	}
+	payload, _ := json.Marshal(params)
+	req, err := http.NewRequest("PATCH", clusterEndpoint+"/"+model.ID, bytes.NewBuffer(payload))
+	if err != nil {
+		return err
+	}
+	c.setHeaders(req)
+	hc := http.Client{}
+	resp, err := hc.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		return err
+	}
+	body, err := io.ReadAll(resp.Body)
+	var response typesenseClusterCreateResponse
+	if err = json.Unmarshal(body, &response); err != nil {
+		return err
+	}
+	if !response.Success {
+		return errors.New(string(body))
+	}
+	return nil
+}
+
 func (c *typesenseClient) setHeaders(req *http.Request) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
