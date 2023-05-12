@@ -2,7 +2,6 @@ package typesense
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -57,6 +56,33 @@ func (cr *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 
 // Create creates the resource and sets the initial Terraform state.
 func (cr *clusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	// Retrieve values from plan
+	var plan clusterDataSourceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Create new cluster
+	cluster, err := cr.client.CreateCluster(plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating cluster",
+			"Could not create cluster, unexpected error: "+err.Error(),
+		)
+		return
+	}
+	plan.ID = cluster.ID
+	plan.Name = cluster.Name
+	plan.Status = cluster.Status
+
+	// Set state to fully populated data
+	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Read refreshes the Terraform state with the latest data.

@@ -15,3 +15,7 @@ func (c *typesenseClient) GetCluster() (*clusterDataSourceModel, error) {
 		Status: types.StringValue("unknown"),
 	}, nil
 }
+
+func (c *typesenseClient) CreateCluster(model clusterDataSourceModel) (*clusterDataSourceModel, error) {
+	return nil, nil
+}
