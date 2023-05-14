@@ -38,10 +38,12 @@ func (p *typesenseProvider) Metadata(_ context.Context, _ provider.MetadataReque
 // Schema defines the provider-level schema for configuration data.
 func (p *typesenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Manage your Typesense clusters",
 		Attributes: map[string]schema.Attribute{
 			"key": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Description: "Cloud Management API Key",
+				Optional:    true,
+				Sensitive:   true,
 			},
 		},
 	}
