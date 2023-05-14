@@ -2,6 +2,7 @@ package typesense
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -153,6 +154,25 @@ func (cr *clusterResource) Create(ctx context.Context, req resource.CreateReques
 		)
 		return
 	}
+
+	// Waiting until state is not provisioning.
+	clusterId := cluster.ID
+	for {
+		time.Sleep(8 * time.Second)
+		cluster, err = cr.client.GetCluster(clusterId)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error waiting for cluster state",
+				"Cluster created, but could not reach expected state: "+err.Error(),
+			)
+			return
+		}
+		if cluster.Status == "provisioning" {
+			continue
+		}
+		break
+	}
+
 	plan.ID = types.StringValue(cluster.ID)
 	plan.Name = types.StringValue(cluster.Name)
 	plan.Memory = types.StringValue(cluster.Memory)
